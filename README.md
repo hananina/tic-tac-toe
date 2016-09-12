@@ -1,4 +1,4 @@
-#Full Stack Nanodegree Project 4 Refresh
+#Tic Tac Toe score keeper
 
 ## Set-Up Instructions:
 1.  Update the value of application in app.yaml to the app ID you have registered
@@ -11,12 +11,10 @@
  
  
 ##Game Description:
-Guess a number is a simple guessing game. Each game begins with a random 'target'
-number between the minimum and maximum values provided, and a maximum number of
-'attempts'. 'Guesses' are sent to the `make_move` endpoint which will reply
-with either: 'too low', 'too high', 'you win', or 'game over' (if the maximum
-number of attempts is reached).
-Many different Guess a Number games can be played by many different Users at any
+Tic tac toe is a simple 2 players game. 
+two players place ◯ or ✕ on the 3×3 board.
+you are playing with an ai player, and this is for keeping your score!
+
 given time. Each game can be retrieved or played by using the path parameter
 `urlsafe_game_key`.
 
@@ -40,12 +38,10 @@ given time. Each game can be retrieved or played by using the path parameter
  - **new_game**
     - Path: 'game'
     - Method: POST
-    - Parameters: user_name, min, max, attempts
+    - Parameters: user_name, attempts
     - Returns: GameForm with initial game state.
     - Description: Creates a new Game. user_name provided must correspond to an
-    existing user - will raise a NotFoundException if not. Min must be less than
-    max. Also adds a task to a task queue to update the average moves remaining
-    for active games.
+    existing user - will raise a NotFoundException if not.
      
  - **get_game**
     - Path: 'game/{urlsafe_game_key}'
@@ -57,9 +53,9 @@ given time. Each game can be retrieved or played by using the path parameter
  - **make_move**
     - Path: 'game/{urlsafe_game_key}'
     - Method: PUT
-    - Parameters: urlsafe_game_key, guess
+    - Parameters: urlsafe_game_key
     - Returns: GameForm with new game state.
-    - Description: Accepts a 'guess' and returns the updated state of the game.
+    - Description: Accepts a won flag and returns the updated state of the game.
     If this causes a game to end, a corresponding Score entity will be created.
     
  - **get_scores**
@@ -102,10 +98,9 @@ given time. Each game can be retrieved or played by using the path parameter
  - **NewGameForm**
     - Used to create a new game (user_name, min, max, attempts)
  - **MakeMoveForm**
-    - Inbound make move form (guess).
+    - Inbound make move form.
  - **ScoreForm**
-    - Representation of a completed game's Score (user_name, date, won flag,
-    guesses).
+    - Representation of a completed game's Score (user_name, date, won flag).
  - **ScoreForms**
     - Multiple ScoreForm container.
  - **StringMessage**

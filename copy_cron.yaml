@@ -1,5 +1,0 @@
-# copy of cron
-cron:
-  - description: Send a reminder email to all user
-    url: /crons/send_reminder
-    schedule: every 1 hours
