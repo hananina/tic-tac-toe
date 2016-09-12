@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-`
+ # -*- coding: utf-8 -*-`
 """api.py - Create and configure the Game API exposing the resources.
 This can also contain game logic. For more complex games it would be wise to
 move game logic to another file. Ideally the API will be simple, concerned
@@ -18,7 +18,7 @@ from utils import get_by_urlsafe
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
 GET_GAME_REQUEST = endpoints.ResourceContainer(
-        urlsafe_game_key=messages.StringField(1),)
+    urlsafe_game_key=messages.StringField(1),)
 MAKE_MOVE_REQUEST = endpoints.ResourceContainer(
     MakeMoveForm,
     urlsafe_game_key=messages.StringField(1),)
@@ -57,8 +57,7 @@ class GuessANumberApi(remote.Service):
             raise endpoints.NotFoundException(
                     'A User with that name does not exist!')
         try:
-            game = Game.new_game(user.key, request.min,
-                                 request.max, request.attempts)
+            game = Game.new_game(user.key, request.attempts)
         except ValueError:
             raise endpoints.BadRequestException('Maximum must be greater '
                                                 'than minimum!')
@@ -90,24 +89,27 @@ class GuessANumberApi(remote.Service):
     def make_move(self, request):
         """Makes a move. Returns a game state with message"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
+
         if game.game_over:
             return game.to_form('Game already over!')
 
         game.attempts_remaining -= 1
-        if request.guess == game.target:
+
+        if request.won_line_me:
             game.end_game(True)
             return game.to_form('You win!')
 
-        if request.guess < game.target:
-            msg = 'Too low!'
-        else:
-            msg = 'Too high!'
+        if request.won_line_ai:
+            game.end_game(False)
+            return game.to_form('You lost :(')
 
         if game.attempts_remaining < 1:
             game.end_game(False)
-            return game.to_form(msg + ' Game over!')
+            return game.to_form('Game over!')
+
         else:
             game.put()
+            msg = 'continue!'
             return game.to_form(msg)
 
     @endpoints.method(response_message=ScoreForms,
