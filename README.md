@@ -8,8 +8,7 @@
 1.  (Optional) Generate your client library(ies) with the endpoints tool.
  Deploy your application.
  
- 
- 
+
 ##Game Description:
 Tic tac toe is a simple 2 players game. 
 two players place ◯ or ✕ on the 3×3 board.
