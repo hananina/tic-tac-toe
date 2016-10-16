@@ -68,8 +68,13 @@ class GameForm(messages.Message):
     urlsafe_key = messages.StringField(1, required=True)
     attempts_remaining = messages.IntegerField(2, required=True)
     game_over = messages.BooleanField(3, required=True)
-    message = messages.StringField(5, required=True)
-    user_name = messages.StringField(6, required=True)
+    message = messages.StringField(4, required=True)
+    user_name = messages.StringField(5, required=True)
+
+
+class GameForms(messages.Message):
+    """Return multiple GameForms"""
+    items = messages.MessageField(GameForm, 1, repeated=True)
 
 
 class NewGameForm(messages.Message):

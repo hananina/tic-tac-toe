@@ -21,10 +21,7 @@ class SendReminderEmail(webapp2.RequestHandler):
         games = Game.query(Game.game_over != None)
 
         for game in games:
-            print 'pass! 1'
-
             if game.game_over == False:
-
                 for user in users:
 
                     subject = 'This is a reminder!'
