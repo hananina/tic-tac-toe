@@ -13,12 +13,16 @@ class User(ndb.Model):
     name = ndb.StringProperty(required=True)
     email =ndb.StringProperty()
 
+    # def to_form(self):
+    #     return ScoreForm(user_name=self.user.get().name, won=self.won,
+    #                      date=str(self.date))
 
 class Game(ndb.Model):
     """Game object"""
     attempts_allowed = ndb.IntegerProperty(required=True)
     attempts_remaining = ndb.IntegerProperty(required=True, default=5)
     game_over = ndb.BooleanProperty(required=True, default=False)
+    cancelled = ndb.BooleanProperty(required=True, default=False)
     user = ndb.KeyProperty(required=True, kind='User')
 
     @classmethod
@@ -28,7 +32,8 @@ class Game(ndb.Model):
         game = Game(user=user,
                     attempts_allowed=attempts,
                     attempts_remaining=attempts,
-                    game_over=False)
+                    game_over=False,
+                    cancelled=False)
         game.put()
         return game
 
@@ -39,6 +44,7 @@ class Game(ndb.Model):
         form.user_name = self.user.get().name
         form.attempts_remaining = self.attempts_remaining
         form.game_over = self.game_over
+        form.cancelled = self.cancelled
         form.message = message
         return form
 
@@ -51,12 +57,17 @@ class Game(ndb.Model):
         score = Score(user=self.user, date=date.today(), won=won)
         score.put()
 
+    def cancel_game(self):
+        """cancel the game"""
+        self.cancelled = True
+        self.put()
+
 
 class Score(ndb.Model):
     """Score object"""
     user = ndb.KeyProperty(required=True, kind='User')
     date = ndb.DateProperty(required=True)
-    won = ndb.BooleanProperty(required=True)
+    won = ndb.BooleanProperty(required=True,default=False)
 
     def to_form(self):
         return ScoreForm(user_name=self.user.get().name, won=self.won,
@@ -68,8 +79,9 @@ class GameForm(messages.Message):
     urlsafe_key = messages.StringField(1, required=True)
     attempts_remaining = messages.IntegerField(2, required=True)
     game_over = messages.BooleanField(3, required=True)
-    message = messages.StringField(4, required=True)
-    user_name = messages.StringField(5, required=True)
+    cancelled = messages.BooleanField(4, required=True)
+    message = messages.StringField(5, required=True)
+    user_name = messages.StringField(6, required=True)
 
 
 class GameForms(messages.Message):
@@ -99,6 +111,17 @@ class ScoreForm(messages.Message):
 class ScoreForms(messages.Message):
     """Return multiple ScoreForms"""
     items = messages.MessageField(ScoreForm, 1, repeated=True)
+
+
+class HighScoreForm(messages.Message):
+    """HighScoreForm for outbound high Scores information"""
+    user_name = messages.StringField(1, required=True)
+    total_won = messages.IntegerField(2, default=0)
+
+
+class HighScoreForms(messages.Message):
+    """Return multiple ScoreForms"""
+    items = messages.MessageField(HighScoreForm, 1, repeated=True)
 
 
 class StringMessage(messages.Message):

@@ -13,7 +13,7 @@ from google.appengine.api import taskqueue
 
 from models import User, Game, Score
 from models import StringMessage, NewGameForm, GameForm, GameForms, MakeMoveForm,\
-    ScoreForms
+    ScoreForms, HighScoreForm, HighScoreForms
 from utils import get_by_urlsafe
 
 # Endpoint requets which is the data you input in endpoint form
@@ -29,12 +29,14 @@ MAKE_MOVE_REQUEST = endpoints.ResourceContainer(
 
 USER_REQUEST = endpoints.ResourceContainer(
     user_name=messages.StringField(1),
-    email=messages.StringField(2))
+    email=messages.StringField(2),)
 
 USER_GAME_REQUEST = endpoints.ResourceContainer(
     user_name=messages.StringField(1))
 
-MEMCACHE_MOVES_REMAINING = 'MOVES_REMAINING'
+HIGHT_SCORE_REQUEST = endpoints.ResourceContainer()
+
+# MEMCACHE_MOVES_REMAINING = 'MOVES_REMAINING'
 
 @endpoints.api(name='tic_tac_toe', version='v1')
 class TicTacToeApi(remote.Service):
@@ -74,7 +76,6 @@ class TicTacToeApi(remote.Service):
         # Use a task queue to update the average attempts remaining.
         # This operation is not needed to complete the creation of a new game
         # so it is performed out of sequence.
-        taskqueue.add(url='/tasks/cache_average_attempts')
         return game.to_form('Good luck playing Tic Tac Toe!')
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
@@ -167,46 +168,42 @@ class TicTacToeApi(remote.Service):
             raise endpoints.NotFoundException(
               'You have no active game!')
 
-    # @endpoints.method(response_message=ScoreForms,
-    #                   path='scores',
-    #                   name='cancel_game',
-    #                   http_method='GET')
-    # def cancel_game(self, request):
-    #     """Return all scores"""
-    #     return ScoreForms(items=[score.to_form() for score in Score.query()])
 
-    @endpoints.method(response_message=GameForm,
+    @endpoints.method(request_message=GET_GAME_REQUEST,
+                      response_message=GameForm,
                       path="game/{urlsafe_game_key}/cancel_game",
                       name="cancel_game",
                       http_method='GET')
     def cancel_game(self, request):
         """cancel a game in progress"""
-
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
-        if game.over:
+        if game.game_over:
             return game.to_form('Game already over!')
         else:
-
-            delete(game)
-            game.commit()
-            
-            return 
+            game.cancel_game()
+            return game.to_form('Game logically deleted!')
 
 
+    @endpoints.method(request_message=HIGHT_SCORE_REQUEST,
+                      response_message=ScoreForms,
+                      path='scores/high_score',
+                      name="get_high_score",
+                      http_method="GET")
+    def get_high_score(self, request):
+        users = User.query().fetch()
+        scores = Score.query(Score.won==True).fetch()
 
+        for user in users:
+            user_name = user.name
+            user_won  = 0
 
+            for score in scores:
+                user_won += int(score.won)
 
+            print user.name
+            print user_won
 
-    # @endpoints.method(response_message=ScoreForms,
-    #                   path='scores',
-    #                   name='get_high_scores',
-    #                   http_method='GET')
-    # def get_high_scores(self, request):
-    #     """Return all scores"""
-    #     return ScoreForms(items=[score.to_form() for score in Score.query()])
-
-
-
+        return ScoreForms(items=[score.to_form() for score in scores])
 
 
 api = endpoints.api_server([TicTacToeApi])
