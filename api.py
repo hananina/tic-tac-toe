@@ -13,7 +13,7 @@ from google.appengine.api import taskqueue
 
 from models import User, Game, Score
 from models import StringMessage, NewGameForm, GameForm, GameForms, MakeMoveForm,\
-    ScoreForms, HighScoreForm, HighScoreForms
+    ScoreForm, ScoreForms, UserForm, UserForms
 from utils import get_by_urlsafe
 
 # Endpoint requets which is the data you input in endpoint form
@@ -34,7 +34,7 @@ USER_REQUEST = endpoints.ResourceContainer(
 USER_GAME_REQUEST = endpoints.ResourceContainer(
     user_name=messages.StringField(1))
 
-HIGHT_SCORE_REQUEST = endpoints.ResourceContainer()
+RANK_REQUEST = endpoints.ResourceContainer()
 
 # MEMCACHE_MOVES_REMAINING = 'MOVES_REMAINING'
 
@@ -51,7 +51,7 @@ class TicTacToeApi(remote.Service):
         if User.query(User.name == request.user_name).get():
             raise endpoints.ConflictException(
                     'A User with that name already exists!')
-        user = User(name=request.user_name, email=request.email)
+        user = User(name=request.user_name, email=request.email, wins=0)
         user.put()
         return StringMessage(message='User {} created!'.format(
                 request.user_name))
@@ -184,26 +184,14 @@ class TicTacToeApi(remote.Service):
             return game.to_form('Game logically deleted!')
 
 
-    @endpoints.method(request_message=HIGHT_SCORE_REQUEST,
-                      response_message=ScoreForms,
-                      path='scores/high_score',
-                      name="get_high_score",
+    @endpoints.method(response_message=UserForms,
+                      path='user/ranking',
+                      name="get_user_rankings",
                       http_method="GET")
-    def get_high_score(self, request):
-        users = User.query().fetch()
-        scores = Score.query(Score.won==True).fetch()
-
-        for user in users:
-            user_name = user.name
-            user_won  = 0
-
-            for score in scores:
-                user_won += int(score.won)
-
-            print user.name
-            print user_won
-
-        return ScoreForms(items=[score.to_form() for score in scores])
+    def get_user_rankings(self, request):
+        """Return all users ranked by wins"""
+        users = User.query().order(-User.wins).fetch()
+        return UserForms(items=[user.to_form() for user in users])
 
 
 api = endpoints.api_server([TicTacToeApi])

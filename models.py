@@ -12,10 +12,19 @@ class User(ndb.Model):
     """User profile"""
     name = ndb.StringProperty(required=True)
     email =ndb.StringProperty()
+    wins = ndb.IntegerProperty(default=0)
 
-    # def to_form(self):
-    #     return ScoreForm(user_name=self.user.get().name, won=self.won,
-    #                      date=str(self.date))
+    def add_win(self):
+        """Add a win"""
+        self.wins += 1
+        self.put()
+        print self.wins
+
+    def to_form(self):
+        return UserForm(name=self.name,
+                        email=self.email,
+                        wins=self.wins)
+
 
 class Game(ndb.Model):
     """Game object"""
@@ -48,6 +57,7 @@ class Game(ndb.Model):
         form.message = message
         return form
 
+
     def end_game(self, won=False):
         """Ends the game - if won is True, the player won. - if won is False,
         the player lost."""
@@ -56,6 +66,9 @@ class Game(ndb.Model):
         # Add the game to the score 'board'
         score = Score(user=self.user, date=date.today(), won=won)
         score.put()
+        # Add user model a won
+        self.user.get().add_win()
+
 
     def cancel_game(self):
         """cancel the game"""
@@ -113,16 +126,15 @@ class ScoreForms(messages.Message):
     items = messages.MessageField(ScoreForm, 1, repeated=True)
 
 
-class HighScoreForm(messages.Message):
-    """HighScoreForm for outbound high Scores information"""
-    user_name = messages.StringField(1, required=True)
-    total_won = messages.IntegerField(2, default=0)
+class UserForm(messages.Message):
+    """User Form"""
+    name = messages.StringField(1, required=True)
+    email = messages.StringField(2)
+    wins = messages.IntegerField(3, required=True)
 
-
-class HighScoreForms(messages.Message):
-    """Return multiple ScoreForms"""
-    items = messages.MessageField(HighScoreForm, 1, repeated=True)
-
+class UserForms(messages.Message):
+    """Container for multiple User Forms"""
+    items = messages.MessageField(UserForm, 1, repeated=True)
 
 class StringMessage(messages.Message):
     """StringMessage-- outbound (single) string message"""
