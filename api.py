@@ -34,9 +34,6 @@ USER_REQUEST = endpoints.ResourceContainer(
 USER_GAME_REQUEST = endpoints.ResourceContainer(
     user_name=messages.StringField(1))
 
-RANK_REQUEST = endpoints.ResourceContainer()
-
-# MEMCACHE_MOVES_REMAINING = 'MOVES_REMAINING'
 
 @endpoints.api(name='tic_tac_toe', version='v1')
 class TicTacToeApi(remote.Service):
@@ -99,25 +96,27 @@ class TicTacToeApi(remote.Service):
     def make_move(self, request):
         """Makes a move. Returns a game state with message"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        game.attempts_remaining -= 1
 
         if game.game_over:
             return game.to_form('Game already over!')
 
-        game.attempts_remaining -= 1
-
         if request.won_line_me:
-            game.end_game(True)
+            game.end_game(True, True)
             return game.to_form('You win!')
 
         if request.won_line_ai:
-            game.end_game(False)
+            game.end_game(False, False)
             return game.to_form('You lost :(')
 
         if game.attempts_remaining < 1:
-            game.end_game(False)
+            game.end_game(False, False)
             return game.to_form('Game over!')
 
         else:
+            print "else!"
+            print game.history
+            game.history.append(("playing!", "no winner yet!"))
             game.put()
             msg = 'continue!'
             return game.to_form(msg)
@@ -180,6 +179,7 @@ class TicTacToeApi(remote.Service):
         if game.game_over:
             return game.to_form('Game already over!')
         else:
+            game.history.append("over!", "cancelled!")
             game.cancel_game()
             return game.to_form('Game logically deleted!')
 
@@ -192,6 +192,23 @@ class TicTacToeApi(remote.Service):
         """Return all users ranked by wins"""
         users = User.query().order(-User.wins).fetch()
         return UserForms(items=[user.to_form() for user in users])
+
+
+    @endpoints.method(request_message=GET_GAME_REQUEST,
+                      response_message=StringMessage,
+                      path="game/{urlsafe_game_key}/history",
+                      name="get_game_history",
+                      http_method='GET')
+    def get_game_history(self, request):
+        """cancel a game in progress"""
+        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        if not game:
+            raise endpoints.NotFoundException(
+                    'game does not exist!')
+        if game.history:
+          return StringMessage(message=str(game.history))
+        else:
+          return StringMessage(message="game haven't started!")
 
 
 api = endpoints.api_server([TicTacToeApi])

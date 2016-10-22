@@ -33,6 +33,7 @@ class Game(ndb.Model):
     game_over = ndb.BooleanProperty(required=True, default=False)
     cancelled = ndb.BooleanProperty(required=True, default=False)
     user = ndb.KeyProperty(required=True, kind='User')
+    history = ndb.PickleProperty(required=True, default={})
 
     @classmethod
     def new_game(cls, user, attempts):
@@ -43,6 +44,7 @@ class Game(ndb.Model):
                     attempts_remaining=attempts,
                     game_over=False,
                     cancelled=False)
+        game.history = []
         game.put()
         return game
 
@@ -58,10 +60,16 @@ class Game(ndb.Model):
         return form
 
 
-    def end_game(self, won=False):
+    def end_game(self, won=False, history=False):
         """Ends the game - if won is True, the player won. - if won is False,
         the player lost."""
         self.game_over = True
+
+        if history:
+            self.history.append(("over!", "human player won."))
+        else:
+            self.history.append(("over!", "AI player won."))
+
         self.put()
         # Add the game to the score 'board'
         score = Score(user=self.user, date=date.today(), won=won)
