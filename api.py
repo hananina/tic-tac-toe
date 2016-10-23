@@ -174,7 +174,7 @@ class TicTacToeApi(remote.Service):
                       name="cancel_game",
                       http_method='GET')
     def cancel_game(self, request):
-        """cancel a game in progress"""
+        """Cancel a game in progres"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game.game_over:
             return game.to_form('Game already over!')
@@ -200,7 +200,7 @@ class TicTacToeApi(remote.Service):
                       name="get_game_history",
                       http_method='GET')
     def get_game_history(self, request):
-        """cancel a game in progress"""
+        """Get all moves from the game."""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if not game:
             raise endpoints.NotFoundException(

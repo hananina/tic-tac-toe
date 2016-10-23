@@ -80,6 +80,34 @@ given time. Each game can be retrieved or played by using the path parameter
     - Description: Gets the average number of attempts remaining for all games
     from a previously cached memcache key.
 
+ - **get_user_games**
+    - Path: 'game/user/{user_name}'
+    - Method: GET
+    - Parameters: None
+    - Returns: GameForms
+    - Description: Return all of a user's active games.
+
+ - **cancel_game**
+    - Path: 'game/{urlsafe_game_key}/cancel_game'
+    - Method: GET
+    - Parameters: None
+    - Returns: GameForm
+    - Description: Cancel a game in progres.
+
+ - **get_user_rankings**
+    - Path: 'user/ranking'
+    - Method: GET
+    - Parameters: None
+    - Returns: UserForms
+    - Description: Return all users ranked by wins.
+
+ - **get_game_history**
+    - Path: 'game/{urlsafe_game_key}/history'
+    - Method: GET
+    - Parameters: None
+    - Returns: StringMessage
+    - Description: Get all moves from the game.
+
 ##Models Included:
  - **User**
     - Stores unique user_name and (optional) email address.
@@ -94,6 +122,8 @@ given time. Each game can be retrieved or played by using the path parameter
  - **GameForm**
     - Representation of a Game's state (urlsafe_key, attempts_remaining,
     game_over flag, message, user_name).
+ - **GameForms**
+    - Multiple GameForm container
  - **NewGameForm**
     - Used to create a new game (user_name, min, max, attempts)
  - **MakeMoveForm**
@@ -104,3 +134,7 @@ given time. Each game can be retrieved or played by using the path parameter
     - Multiple ScoreForm container.
  - **StringMessage**
     - General purpose String container.
+ - **UserForm**
+     - inbound user's information.
+ - **UserForms**
+     - Multiple UserForm container
