@@ -27,23 +27,34 @@ class User(ndb.Model):
 
 class Game(ndb.Model):
     """Game object"""
-    attempts_allowed = ndb.IntegerProperty(required=True, default=9)
-    attempts_remaining = ndb.IntegerProperty(required=True, default=9)
-    game_over = ndb.BooleanProperty(required=True, default=False)
-    cancelled = ndb.BooleanProperty(required=True, default=False)
-    user = ndb.KeyProperty(required=True, kind='User')
-    history = ndb.PickleProperty(required=True, default={})
+
+    user_o      = ndb.KeyProperty(required=True, kind='User')
+    user_x      = ndb.KeyProperty(required=True, kind='User')
+
+    attempts    = ndb.IntegerProperty(required=True, default=9)
+    score_board = ndb.PickleProperty(required=True, default={})
+    next_move   = ndb.KeyProperty(required=True, kind='User')
+
+    game_over   = ndb.BooleanProperty(required=True, default=False)
+    tie         = ndb.BooleanProperty(required=True, default=False)
+
+    cancelled   = ndb.BooleanProperty(required=True, default=False)
+    history     = ndb.PickleProperty(required=True, default={})
 
     @classmethod
-    def new_game(cls, user):
+    def new_game(cls, user_o, user_x):
         """Creates and returns a new game"""
 
-        game = Game(user=user,
-                    attempts_allowed=9,
-                    attempts_remaining=9,
+        game = Game(user_o=user_o,
+                    user_x=user_x,
+                    attempts=9,
+                    score_board=['' for _ in range(attempts)],
+                    next_move=user_o,
                     game_over=False,
-                    cancelled=False)
-        game.history = []
+                    tie=False,
+                    history= [],
+                    cancelled=False,
+                    )
         game.put()
         return game
 
@@ -51,8 +62,9 @@ class Game(ndb.Model):
         """Returns a GameForm representation of the Game"""
         form = GameForm()
         form.urlsafe_key = self.key.urlsafe()
-        form.user_name = self.user.get().name
-        form.attempts_remaining = self.attempts_remaining
+        form.user_o_name = self.user_o.get().name
+        form.user_x_name = self.user_x.get().name
+        form.attempts = self.attempts
         form.game_over = self.game_over
         form.cancelled = self.cancelled
         form.message = message
@@ -85,19 +97,21 @@ class Game(ndb.Model):
 
 class Score(ndb.Model):
     """Score object"""
-    user = ndb.KeyProperty(required=True, kind='User')
+    user_o = ndb.KeyProperty(required=True, kind='User')
+    user_x = ndb.KeyProperty(required=True, kind='User')
     date = ndb.DateProperty(required=True)
     won = ndb.BooleanProperty(required=True,default=False)
 
     def to_form(self):
-        return ScoreForm(user_name=self.user.get().name, won=self.won,
-                         date=str(self.date))
-
+        return ScoreForm(
+            user_o_name=self.user_o.get().name, user_x_name=self.user_x.get().name, won=self.won,
+            date=str(self.date)
+        )
 
 class GameForm(messages.Message):
     """GameForm for outbound game state information"""
     urlsafe_key = messages.StringField(1, required=True)
-    attempts_remaining = messages.IntegerField(2, required=True)
+    attempts = messages.IntegerField(2, required=True)
     game_over = messages.BooleanField(3, required=True)
     cancelled = messages.BooleanField(4, required=True)
     message = messages.StringField(5, required=True)
@@ -111,20 +125,22 @@ class GameForms(messages.Message):
 
 class NewGameForm(messages.Message):
     """Used to create a new game"""
-    user_name = messages.StringField(1, required=True)
-
+    user_o = messages.StringField(1, required=True)
+    user_x = messages.StringField(2, required=True)
 
 class MakeMoveForm(messages.Message):
     """Used to make a move in an existing game"""
-    won_line_me = messages.BooleanField(1, default=False)
-    won_line_ai = messages.BooleanField(2, default=False)
+
+    user_name = messages.StringField(1, required=True)
+    move = messages.IntegerField(2, required=True)
 
 
 class ScoreForm(messages.Message):
     """ScoreForm for outbound Score information"""
-    user_name = messages.StringField(1, required=True)
-    date = messages.StringField(2, required=True)
-    won = messages.BooleanField(3, required=True)
+    user_o_name = messages.StringField(1, required=True)
+    user_x_name = messages.StringField(2, required=True)
+    date = messages.StringField(3, required=True)
+    won = messages.BooleanField(4, required=True)
 
 
 class ScoreForms(messages.Message):
