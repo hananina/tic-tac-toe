@@ -119,7 +119,7 @@ class TicTacToeApi(remote.Service):
 
             move = request.move
             
-            game.score_board[move] = 'o' if o else "x"
+            game.board[move] = 'o' if o else "x"
             game.history.append(("o" if o else"x", move))
 
             game.put()
