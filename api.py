@@ -67,12 +67,9 @@ class TicTacToeApi(remote.Service):
         if not (user_o and user_x):
             raise endpoints.NotFoundException(
                     'A User with that name does not exist!')
-        try:
 
-            game = Game.new_game(user_o.key, user_x.key)
-        except ValueError:
-            raise endpoints.BadRequestException('Maximum must be greater '
-                                                'than minimum!')
+        game = Game.new_game(user_o.key, user_x.key)
+
 
         return game.to_form('Good luck playing Tic Tac Toe!')
 

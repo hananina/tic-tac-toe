@@ -32,7 +32,8 @@ class Game(ndb.Model):
     user_x      = ndb.KeyProperty(required=True, kind='User')
 
     attempts    = ndb.IntegerProperty(required=True, default=9)
-    score_board = ndb.PickleProperty(required=True, default={})
+    # board_size  = ndb.IntegerProperty(required=True, default=9)
+    board       = ndb.PickleProperty(required=True, default={})
     next_move   = ndb.KeyProperty(required=True, kind='User')
 
     game_over   = ndb.BooleanProperty(required=True, default=False)
@@ -48,7 +49,7 @@ class Game(ndb.Model):
         game = Game(user_o=user_o,
                     user_x=user_x,
                     attempts=9,
-                    score_board=['' for _ in range(attempts)],
+                    board=['' for _ in range(9)],
                     next_move=user_o,
                     game_over=False,
                     tie=False,
@@ -111,11 +112,12 @@ class Score(ndb.Model):
 class GameForm(messages.Message):
     """GameForm for outbound game state information"""
     urlsafe_key = messages.StringField(1, required=True)
-    attempts = messages.IntegerField(2, required=True)
-    game_over = messages.BooleanField(3, required=True)
-    cancelled = messages.BooleanField(4, required=True)
-    message = messages.StringField(5, required=True)
-    user_name = messages.StringField(6, required=True)
+    attempts    = messages.IntegerField(2, required=True)
+    user_o_name = messages.StringField(3, required=True)
+    user_x_name = messages.StringField(4, required=True)
+    game_over   = messages.BooleanField(5, required=True)
+    cancelled   = messages.BooleanField(6, required=True)
+    message     = messages.StringField(7, required=True)
 
 
 class GameForms(messages.Message):
