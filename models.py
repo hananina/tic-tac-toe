@@ -1,6 +1,5 @@
 """models.py - This file contains the class definitions for the Datastore
-entities used by the Game. Because these classes are also regular Python
-classes they can include methods (such as 'to_form' and 'new_game')."""
+entities used by the Game."""
 
 import random
 from datetime import date
@@ -28,20 +27,20 @@ class User(ndb.Model):
 
 class Game(ndb.Model):
     """Game object"""
-    attempts_allowed = ndb.IntegerProperty(required=True)
-    attempts_remaining = ndb.IntegerProperty(required=True, default=5)
+    attempts_allowed = ndb.IntegerProperty(required=True, default=9)
+    attempts_remaining = ndb.IntegerProperty(required=True, default=9)
     game_over = ndb.BooleanProperty(required=True, default=False)
     cancelled = ndb.BooleanProperty(required=True, default=False)
     user = ndb.KeyProperty(required=True, kind='User')
     history = ndb.PickleProperty(required=True, default={})
 
     @classmethod
-    def new_game(cls, user, attempts):
+    def new_game(cls, user):
         """Creates and returns a new game"""
 
         game = Game(user=user,
-                    attempts_allowed=attempts,
-                    attempts_remaining=attempts,
+                    attempts_allowed=9,
+                    attempts_remaining=9,
                     game_over=False,
                     cancelled=False)
         game.history = []
@@ -113,7 +112,6 @@ class GameForms(messages.Message):
 class NewGameForm(messages.Message):
     """Used to create a new game"""
     user_name = messages.StringField(1, required=True)
-    attempts = messages.IntegerField(2, default=9)
 
 
 class MakeMoveForm(messages.Message):

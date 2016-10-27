@@ -1,9 +1,5 @@
  # -*- coding: utf-8 -*-`
-"""api.py - Create and configure the Game API exposing the resources.
-This can also contain game logic. For more complex games it would be wise to
-move game logic to another file. Ideally the API will be simple, concerned
-primarily with communication to/from the API's users."""
-
+"""api.py - game logic For Tic Tac Toe."""
 
 import logging
 import endpoints
@@ -12,8 +8,11 @@ from google.appengine.api import memcache
 from google.appengine.api import taskqueue
 
 from models import User, Game, Score
-from models import StringMessage, NewGameForm, GameForm, GameForms, MakeMoveForm,\
+from models import (
+    StringMessage, NewGameForm, GameForm, GameForms, MakeMoveForm,\
     ScoreForm, ScoreForms, UserForm, UserForms
+)
+
 from utils import get_by_urlsafe
 
 # Endpoint requets which is the data you input in endpoint form
@@ -65,14 +64,11 @@ class TicTacToeApi(remote.Service):
             raise endpoints.NotFoundException(
                     'A User with that name does not exist!')
         try:
-            game = Game.new_game(user.key, request.attempts)
+            game = Game.new_game(user.key)
         except ValueError:
             raise endpoints.BadRequestException('Maximum must be greater '
                                                 'than minimum!')
 
-        # Use a task queue to update the average attempts remaining.
-        # This operation is not needed to complete the creation of a new game
-        # so it is performed out of sequence.
         return game.to_form('Good luck playing Tic Tac Toe!')
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
@@ -159,7 +155,10 @@ class TicTacToeApi(remote.Service):
         if not user:
             raise endpoints.NotFoundException(
                     'A User with that name does not exist!')
-        games = Game.query(Game.user == user.key and Game.game_over == False)
+
+        games = Game.query(Game.user == user.key)\
+                    .filter(Game.game_over == False)
+
         if games:
             return GameForms(items=[game.to_form("Here are all active game you have!") 
                     for game in games])
@@ -179,7 +178,7 @@ class TicTacToeApi(remote.Service):
         if game.game_over:
             return game.to_form('Game already over!')
         else:
-            game.history.append("over!", "cancelled!")
+            game.history.append(("over!", "cancelled!"))
             game.cancel_game()
             return game.to_form('Game logically deleted!')
 

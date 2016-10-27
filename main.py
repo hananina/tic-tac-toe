@@ -18,12 +18,10 @@ class SendReminderEmail(webapp2.RequestHandler):
         Called every hour using a cron job"""
         app_id = app_identity.get_application_id()
         users = User.query(User.email != None)
-        games = Game.query(Game.game_over != None)
 
-        for game in games:
-            if game.game_over == False:
-                for user in users:
-
+        for user in users:
+            games = Game.query(Game.user == user.key, Game.game_over == False)
+               if games:
                     subject = 'This is a reminder!'
                     body = 'Hi {}, are you still there?!'.format(user.name)
                     # This will send test emails, the arguments to send_mail are:
