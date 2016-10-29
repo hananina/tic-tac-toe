@@ -54,6 +54,7 @@ class TicTacToeApi(remote.Service):
         return StringMessage(message='User {} created!'.format(
                 request.user_name))
 
+
     @endpoints.method(request_message=NEW_GAME_REQUEST,
                       response_message=GameForm,
                       path='game',
@@ -69,9 +70,8 @@ class TicTacToeApi(remote.Service):
                     'A User with that name does not exist!')
 
         game = Game.new_game(user_o.key, user_x.key)
-
-
         return game.to_form('Good luck playing Tic Tac Toe!')
+
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GameForm,
@@ -86,6 +86,7 @@ class TicTacToeApi(remote.Service):
         else:
             raise endpoints.NotFoundException('Game not found!')
 
+
     @endpoints.method(request_message=MAKE_MOVE_REQUEST,
                       response_message=GameForm,
                       path='game/{urlsafe_game_key}',
@@ -94,37 +95,70 @@ class TicTacToeApi(remote.Service):
     def make_move(self, request):
         """Makes a move. Returns a game state with message"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        user = User.query(User.name == request.user_name).get()
+
+        if 0 > request.move or 8 < request.move:
+            raise endpoints.NotFoundException('The number you gave is not apropriate,\
+                   should be 0-8')
+        move = request.move
+
+        # check this user is o or x?
+        o = True if user.key == game.user_o else False
+
+        if not user:
+            raise endpoints.NotFoundException('No such a user!')
+
         if not game:
             raise endpoints.NotFoundException('Game not found!')
 
         if game.game_over:
             return game.to_form('Game already over!')
 
-        user = User.query(User.name == request.user_name).get()
-        if not user:
-            raise endpoints.NotFoundException('No such a user!')
-
         if user.key != game.next_move:
             raise endpoints.NotFoundException('It\'s not your turn!')
 
+        # check if the square of the bord is available?
+        if game.board[move] != '':
+            raise endpoints.NotFoundException('This square is already taken, \
+                choose other move!')
+
+        game.board[move] = 'o' if o else "x"
+        game.history.append((move, "o" if o else"x"))
+        game.next_move = game.user_x if o else game.user_o
+
+        # ここで勝ちが無いかチェック入る！
+        check_winner = False
+        if game.board[0] !="" and game.board[0] == game.board[1] == game.board[2]:
+            check_winner = True
+        if game.board[3] !="" and game.board[3] == game.board[4] == game.board[5]:
+            check_winner = True
+        if game.board[6] !="" and game.board[6] == game.board[7] == game.board[8]:
+            check_winner = True
+        if game.board[0] !="" and game.board[0] == game.board[4] == game.board[8]:
+            check_winner = True
+        if game.board[2] !="" and game.board[2] == game.board[4] == game.board[6]:
+            check_winner = True
+        if game.board[2] !="" and game.board[2] == game.board[5] == game.board[8]:
+            check_winner = True
+        if game.board[1] !="" and game.board[1] == game.board[3] == game.board[6]:
+            check_winner = True
+
         game.attempts -= 1
 
+        user_name = request.user_name
+        if check_winner == True:
+            game.end_game(True, user_name)
+            return game.to_form('You win!')
+
         if game.attempts < 1:
-            game.end_game(False, False)
-            return game.to_form('Game over!')
-
+            # tie よ！
+            game.end_game(False, user_name)
+            return game.to_form('Game over! it\'s tie')
         else:
-            # check this user is o or x?
-            o = True if user.key == game.user_o else False
-
-            move = request.move
-            
-            game.board[move] = 'o' if o else "x"
-            game.history.append(("o" if o else"x", move))
-
             game.put()
             msg = 'continue!'
             return game.to_form(msg)
+
 
     @endpoints.method(response_message=ScoreForms,
                       path='scores',

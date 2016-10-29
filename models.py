@@ -11,13 +11,6 @@ class User(ndb.Model):
     """User profile"""
     name = ndb.StringProperty(required=True)
     email =ndb.StringProperty()
-    wins = ndb.IntegerProperty(default=0)
-
-    def add_win(self):
-        """Add a win"""
-        self.wins += 1
-        self.put()
-        print self.wins
 
     def to_form(self):
         return UserForm(name=self.name,
@@ -27,20 +20,16 @@ class User(ndb.Model):
 
 class Game(ndb.Model):
     """Game object"""
-
     user_o      = ndb.KeyProperty(required=True, kind='User')
     user_x      = ndb.KeyProperty(required=True, kind='User')
-
     attempts    = ndb.IntegerProperty(required=True, default=9)
-    # board_size  = ndb.IntegerProperty(required=True, default=9)
     board       = ndb.PickleProperty(required=True, default={})
     next_move   = ndb.KeyProperty(required=True, kind='User')
-
     game_over   = ndb.BooleanProperty(required=True, default=False)
     tie         = ndb.BooleanProperty(required=True, default=False)
-
     cancelled   = ndb.BooleanProperty(required=True, default=False)
     history     = ndb.PickleProperty(required=True, default={})
+    winner      = ndb.StringProperty()
 
     @classmethod
     def new_game(cls, user_o, user_x):
@@ -53,7 +42,7 @@ class Game(ndb.Model):
                     next_move=user_o,
                     game_over=False,
                     tie=False,
-                    history= [],
+                    history=[],
                     cancelled=False,
                     )
         game.put()
@@ -65,29 +54,30 @@ class Game(ndb.Model):
         form.urlsafe_key = self.key.urlsafe()
         form.user_o_name = self.user_o.get().name
         form.user_x_name = self.user_x.get().name
-        form.attempts = self.attempts
-        form.game_over = self.game_over
-        form.cancelled = self.cancelled
-        form.message = message
+        form.next_move   = self.next_move.get().name
+        form.attempts    = self.attempts
+        form.game_over   = self.game_over
+        form.cancelled   = self.cancelled
+        form.winner      = self.winner
+        form.message     = message
         return form
 
 
-    def end_game(self, won=False, history=False):
+    def end_game(self, won, user_name):
         """Ends the game - if won is True, the player won. - if won is False,
         the player lost."""
+        
+        if won:
+            self.winner = user_name
+
         self.game_over = True
-
-        if history:
-            self.history.append(("over!", "human player won."))
-        else:
-            self.history.append(("over!", "AI player won."))
-
         self.put()
-        # Add the game to the score 'board'
-        score = Score(user=self.user, date=date.today(), won=won)
-        score.put()
-        # Add user model a won
-        self.user.get().add_win()
+
+        # if won:
+        #     score = Score(user=user_key, date=date.today(), won=won, tie=False)
+        # else:
+        #     score = Score(user=user_key, date=date.today(), won=won, tie=True)
+        # score.put()
 
 
     def cancel_game(self):
@@ -102,10 +92,14 @@ class Score(ndb.Model):
     user_x = ndb.KeyProperty(required=True, kind='User')
     date = ndb.DateProperty(required=True)
     won = ndb.BooleanProperty(required=True,default=False)
+    tie = ndb.BooleanProperty(default=False)
 
     def to_form(self):
         return ScoreForm(
-            user_o_name=self.user_o.get().name, user_x_name=self.user_x.get().name, won=self.won,
+            user_o_name=self.user_o.get().name,
+            user_x_name=self.user_x.get().name,
+            won=self.won,
+            tie=tie,
             date=str(self.date)
         )
 
@@ -115,9 +109,11 @@ class GameForm(messages.Message):
     attempts    = messages.IntegerField(2, required=True)
     user_o_name = messages.StringField(3, required=True)
     user_x_name = messages.StringField(4, required=True)
-    game_over   = messages.BooleanField(5, required=True)
-    cancelled   = messages.BooleanField(6, required=True)
-    message     = messages.StringField(7, required=True)
+    next_move   = messages.StringField(5, required=True)
+    game_over   = messages.BooleanField(6, required=True)
+    cancelled   = messages.BooleanField(7, required=True)
+    winner      = messages.StringField(8)
+    message     = messages.StringField(9, required=True)
 
 
 class GameForms(messages.Message):
