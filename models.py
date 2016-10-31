@@ -9,13 +9,12 @@ from google.appengine.ext import ndb
 
 class User(ndb.Model):
     """User profile"""
-    name = ndb.StringProperty(required=True)
-    email =ndb.StringProperty()
+    name  = ndb.StringProperty(required=True)
+    email = ndb.StringProperty()
 
     def to_form(self):
         return UserForm(name=self.name,
-                        email=self.email,
-                        wins=self.wins)
+                        email=self.email)
 
 
 class Game(ndb.Model):
@@ -26,7 +25,7 @@ class Game(ndb.Model):
     board       = ndb.PickleProperty(required=True, default={})
     next_move   = ndb.KeyProperty(required=True, kind='User')
     game_over   = ndb.BooleanProperty(required=True, default=False)
-    tie         = ndb.BooleanProperty(required=True, default=False)
+    tie         = ndb.BooleanProperty(default=False)
     cancelled   = ndb.BooleanProperty(required=True, default=False)
     history     = ndb.PickleProperty(required=True, default={})
     winner      = ndb.StringProperty()
@@ -57,27 +56,33 @@ class Game(ndb.Model):
         form.next_move   = self.next_move.get().name
         form.attempts    = self.attempts
         form.game_over   = self.game_over
+        form.tie         = self.tie
         form.cancelled   = self.cancelled
         form.winner      = self.winner
         form.message     = message
         return form
 
 
-    def end_game(self, won, user_name):
+    def end_game(self, won, user):
         """Ends the game - if won is True, the player won. - if won is False,
         the player lost."""
-        
+
         if won:
-            self.winner = user_name
+            self.winner = user.name
+        else:
+            self.tie = True
 
         self.game_over = True
         self.put()
+    
+        score = Score(
+                    winner=self.winner, 
+                    user_o=self.user_o, 
+                    user_x=self.user_x, 
+                    date=date.today()
+                )
+        score.put()
 
-        # if won:
-        #     score = Score(user=user_key, date=date.today(), won=won, tie=False)
-        # else:
-        #     score = Score(user=user_key, date=date.today(), won=won, tie=True)
-        # score.put()
 
 
     def cancel_game(self):
@@ -88,18 +93,16 @@ class Game(ndb.Model):
 
 class Score(ndb.Model):
     """Score object"""
-    user_o = ndb.KeyProperty(required=True, kind='User')
-    user_x = ndb.KeyProperty(required=True, kind='User')
+    winner = ndb.StringProperty(required=True)
+    user_o = ndb.KeyProperty(required=True)
+    user_x = ndb.KeyProperty(required=True)
     date = ndb.DateProperty(required=True)
-    won = ndb.BooleanProperty(required=True,default=False)
-    tie = ndb.BooleanProperty(default=False)
 
     def to_form(self):
         return ScoreForm(
-            user_o_name=self.user_o.get().name,
-            user_x_name=self.user_x.get().name,
-            won=self.won,
-            tie=tie,
+            winner=self.winner,
+            user_o=self.user_o.get().name,
+            user_x=self.user_x.get().name,
             date=str(self.date)
         )
 
@@ -111,9 +114,10 @@ class GameForm(messages.Message):
     user_x_name = messages.StringField(4, required=True)
     next_move   = messages.StringField(5, required=True)
     game_over   = messages.BooleanField(6, required=True)
-    cancelled   = messages.BooleanField(7, required=True)
-    winner      = messages.StringField(8)
-    message     = messages.StringField(9, required=True)
+    tie         = messages.BooleanField(7)
+    cancelled   = messages.BooleanField(8)
+    winner      = messages.StringField(9)
+    message     = messages.StringField(10, required=True)
 
 
 class GameForms(messages.Message):
@@ -135,10 +139,10 @@ class MakeMoveForm(messages.Message):
 
 class ScoreForm(messages.Message):
     """ScoreForm for outbound Score information"""
-    user_o_name = messages.StringField(1, required=True)
-    user_x_name = messages.StringField(2, required=True)
-    date = messages.StringField(3, required=True)
-    won = messages.BooleanField(4, required=True)
+    winner = messages.StringField(1, required=True)
+    user_o = messages.StringField(2, required=True)
+    user_x = messages.StringField(3, required=True)
+    date = messages.StringField(4, required=True)
 
 
 class ScoreForms(messages.Message):
@@ -150,7 +154,6 @@ class UserForm(messages.Message):
     """User Form"""
     name = messages.StringField(1, required=True)
     email = messages.StringField(2)
-    wins = messages.IntegerField(3, required=True)
 
 class UserForms(messages.Message):
     """Container for multiple User Forms"""

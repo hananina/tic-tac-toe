@@ -5,7 +5,8 @@
 import logging
 import endpoints
 from protorpc import remote, messages
-from google.appengine.api import memcache
+from google.appengine.api import memcache, mail
+from google.appengine.ext import ndb
 from google.appengine.api import taskqueue
 
 from models import User, Game, Score
@@ -49,7 +50,7 @@ class TicTacToeApi(remote.Service):
         if User.query(User.name == request.user_name).get():
             raise endpoints.ConflictException(
                     'A User with that name already exists!')
-        user = User(name=request.user_name, email=request.email, wins=0)
+        user = User(name=request.user_name, email=request.email)
         user.put()
         return StringMessage(message='User {} created!'.format(
                 request.user_name))
@@ -82,7 +83,7 @@ class TicTacToeApi(remote.Service):
         """Return the current game state."""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game:
-            return game.to_form('Time to make a move!')
+            return game.to_form('This is current game status!')
         else:
             raise endpoints.NotFoundException('Game not found!')
 
@@ -119,8 +120,7 @@ class TicTacToeApi(remote.Service):
 
         # check if the square of the bord is available?
         if game.board[move] != '':
-            raise endpoints.NotFoundException('This square is already taken, \
-                choose other move!')
+            raise endpoints.NotFoundException('This square is already taken, choose other move!')
 
         game.board[move] = 'o' if o else "x"
         game.history.append((move, "o" if o else"x"))
@@ -145,14 +145,12 @@ class TicTacToeApi(remote.Service):
 
         game.attempts -= 1
 
-        user_name = request.user_name
         if check_winner == True:
-            game.end_game(True, user_name)
+            game.end_game(True, user)
             return game.to_form('You win!')
 
         if game.attempts < 1:
-            # tie よ！
-            game.end_game(False, user_name)
+            game.end_game(False, user)
             return game.to_form('Game over! it\'s tie')
         else:
             game.put()
@@ -182,7 +180,7 @@ class TicTacToeApi(remote.Service):
             raise endpoints.NotFoundException(
                     'A User with that name does not exist!')
 
-        scores = Score.query(Score.user == user.key)
+        scores = Score.query(ndb.OR(Score.user_o == user.key, Score.user_x == user.key))
         return ScoreForms(items=[score.to_form() for score in scores])
 
 
@@ -209,7 +207,7 @@ class TicTacToeApi(remote.Service):
         if not games:
             raise endpoints.NotFoundException('You have no active game!')
 
-        return GameForms(items=[game.to_form("Here are all active game you have!") 
+        return GameForms(items=[game.to_form("This is an active game you have!") 
                           for game in games])
 
 
@@ -234,8 +232,8 @@ class TicTacToeApi(remote.Service):
                       name="get_user_rankings",
                       http_method="GET")
     def get_user_rankings(self, request):
-        """Return all users ranked by wins"""
-        users = User.query().order(-User.wins).fetch()
+        """Return all users ranked"""
+        users = User.query().fetch()
         if not users:
             raise endpoints.NotFoundException('You have no game!')
         return UserForms(items=[user.to_form() for user in users])
