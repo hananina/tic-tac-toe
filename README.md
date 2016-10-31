@@ -11,8 +11,12 @@
 
 ##Game Description:
 Tic tac toe is a simple 2 players game. 
-two players place ◯ or ✕ on the 3×3 board.
-you are playing with an ai player, and this is for keeping your score!
+two players place "o" or "x" on the 3x3 board.
+you are playing with another player!
+when you create new game, there are two forms "user_o" and "user_x".
+new game always starts with user_o's turn.
+and "next_turn" property indicate the user who will play next move. 
+
 
 given time. Each game can be retrieved or played by using the path parameter
 `urlsafe_game_key`.
