@@ -193,16 +193,13 @@ class TicTacToeApi(remote.Service):
         Return all of a user's active games
         """
         user = User.query(User.name == request.user_name).get()
-        if not user:
 
+        if not user:
             raise endpoints.NotFoundException('A User with that name does not exist!')
 
-        games = Game.query(ndb.OR(Game.user_o == user.key,
-                                  Game.user_x == user.key)).\
-                filter(Game.game_over == False)
-
-        games = Game.query()
-
+        games = Game.query(ndb.OR(Game.user_o == user.key, Game.user_x == user.key))\
+                            .filter(Game.game_over == False)\
+                            .filter(Game.cancelled == False).fetch()
         if not games:
             raise endpoints.NotFoundException('You have no active game!')
 
@@ -214,7 +211,7 @@ class TicTacToeApi(remote.Service):
                       response_message=GameForm,
                       path="game/{urlsafe_game_key}/cancel_game",
                       name="cancel_game",
-                      http_method='GET')
+                      http_method='PUT')
     def cancel_game(self, request):
         """Cancel a game in progres"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
