@@ -2,8 +2,6 @@
 Design decision about this roject
 # Design A Game - Tic Tac Toe
 
-
-##  What were some of the trade-offs or struggles you faced when implementing the new game logic?
 Game model:
     I decided to take TIC TAC TOE as my project, since I am not familier with other games.
     took 3*3 squered board, and it configured as a 2 players game.
@@ -27,9 +25,13 @@ Game model:
     only stored here when a game complated.
 
 
-
 ## What additional properties did you add to your models and why?
+##  What were some of the trade-offs or struggles you faced when implementing the new game logic?
 
+- User
+    wins:
+        I had struggles how to make ```get_user_ranking```, so decided to update 
+        user's win record when the game ended. so it easy to get sorted. 
 - Game
     user_o, user_x:
         I added user_o and user_x insted of user, since there are two players 

@@ -144,9 +144,9 @@ class TicTacToeApi(remote.Service):
 
         game.attempts -= 1
 
-        if check_winner == True:
-            game.end_game(True, user)
-            return game.to_form('You win!')
+        # if check_winner == True:
+        game.end_game(True, user)
+        return game.to_form('You win!')
 
         if game.attempts < 1:
             game.end_game(False, user)
@@ -229,9 +229,9 @@ class TicTacToeApi(remote.Service):
                       http_method="GET")
     def get_user_rankings(self, request):
         """Return all users ranked"""
-        users = User.query().fetch()
+        users = User.query().order(-User.wins).fetch()
         if not users:
-            raise endpoints.NotFoundException('You have no game!')
+            raise endpoints.NotFoundException('You have no game complated!')
         return UserForms(items=[user.to_form() for user in users])
 
 

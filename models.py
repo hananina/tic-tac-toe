@@ -11,10 +11,17 @@ class User(ndb.Model):
     """User profile"""
     name  = ndb.StringProperty(required=True)
     email = ndb.StringProperty()
+    wins  = ndb.IntegerProperty(required=True, default=0)
 
     def to_form(self):
         return UserForm(name=self.name,
-                        email=self.email)
+                        email=self.email,
+                        wins=self.wins)
+
+    def add_win(self):
+        """Add a win"""
+        self.wins += 1
+        self.put()
 
 
 class Game(ndb.Model):
@@ -84,6 +91,14 @@ class Game(ndb.Model):
                     date=date.today()
                 )
         score.put()
+
+        # Add User a win
+        print "user="
+        print user
+        print "user.key="
+        print user.key
+
+        user.key.get().add_win()
 
 
     def cancel_game(self):
@@ -155,8 +170,9 @@ class ScoreForms(messages.Message):
 
 class UserForm(messages.Message):
     """User Form"""
-    name = messages.StringField(1, required=True)
+    name  = messages.StringField(1, required=True)
     email = messages.StringField(2)
+    wins  = messages.IntegerField(3)
 
 
 class UserForms(messages.Message):
