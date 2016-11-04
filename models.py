@@ -53,11 +53,13 @@ class Game(ndb.Model):
         form.urlsafe_key = self.key.urlsafe()
         form.user_o_name = self.user_o.get().name
         form.user_x_name = self.user_x.get().name
-        form.next_move   = self.next_move.get().name
         form.attempts    = self.attempts
+        form.board       = str(self.board)
+        form.next_move   = self.next_move.get().name
         form.game_over   = self.game_over
         form.tie         = self.tie
         form.cancelled   = self.cancelled
+        form.history     = str(self.history)
         form.winner      = self.winner
         form.message     = message
         return form
@@ -105,18 +107,21 @@ class Score(ndb.Model):
             date=str(self.date)
         )
 
+
 class GameForm(messages.Message):
     """GameForm for outbound game state information"""
     urlsafe_key = messages.StringField(1, required=True)
-    attempts    = messages.IntegerField(2, required=True)
-    user_o_name = messages.StringField(3, required=True)
-    user_x_name = messages.StringField(4, required=True)
-    next_move   = messages.StringField(5, required=True)
-    game_over   = messages.BooleanField(6, required=True)
-    tie         = messages.BooleanField(7)
-    cancelled   = messages.BooleanField(8)
-    winner      = messages.StringField(9)
-    message     = messages.StringField(10, required=True)
+    user_o_name = messages.StringField(2, required=True)
+    user_x_name = messages.StringField(3, required=True)
+    attempts    = messages.IntegerField(4, required=True)
+    board       = messages.StringField(5)
+    next_move   = messages.StringField(6, required=True)
+    game_over   = messages.BooleanField(7, required=True)
+    tie         = messages.BooleanField(8)
+    cancelled   = messages.BooleanField(9)
+    history     = messages.StringField(10)
+    winner      = messages.StringField(11)
+    message     = messages.StringField(12, required=True)
 
 
 class GameForms(messages.Message):
@@ -131,7 +136,6 @@ class NewGameForm(messages.Message):
 
 class MakeMoveForm(messages.Message):
     """Used to make a move in an existing game"""
-
     user_name = messages.StringField(1, required=True)
     move = messages.IntegerField(2, required=True)
 
@@ -154,9 +158,11 @@ class UserForm(messages.Message):
     name = messages.StringField(1, required=True)
     email = messages.StringField(2)
 
+
 class UserForms(messages.Message):
     """Container for multiple User Forms"""
     items = messages.MessageField(UserForm, 1, repeated=True)
+
 
 class StringMessage(messages.Message):
     """StringMessage-- outbound (single) string message"""
