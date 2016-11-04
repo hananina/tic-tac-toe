@@ -74,7 +74,7 @@ class Game(ndb.Model):
 
         self.game_over = True
         self.put()
-    
+
         score = Score(
                     winner=self.winner, 
                     user_o=self.user_o, 
@@ -82,7 +82,6 @@ class Game(ndb.Model):
                     date=date.today()
                 )
         score.put()
-
 
 
     def cancel_game(self):

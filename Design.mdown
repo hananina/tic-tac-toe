@@ -1,0 +1,69 @@
+
+Design decision about this roject
+# Design A Game - Tic Tac Toe
+
+
+##  What were some of the trade-offs or struggles you faced when implementing the new game logic?
+Game model:
+    I decided to take TIC TAC TOE as my project, since I am not familier with other games.
+    took 3*3 squered board, and it configured as a 2 players game.
+
+    Formerly I was building a game model for a human player and an AI player, 
+    then I couldn't figure out how to populate a square randomly like a move of AI player.
+    so I decided to change 2 human player's game, this way I can manually populate a square to test.
+
+- User
+    To store indivisual user's information.
+    At the begining I designed this model with a Property to store Win count.
+    but removed that property since I realized that I can get win count 
+    by querying Score model with user key.
+
+- Game
+    To store individual game's information and status.
+
+- Score
+    To store a result of a game that is accessable by User key and Game key.
+    I designed this model to contain only the result of game. these data 
+    only stored here when a game complated.
+
+
+
+## What additional properties did you add to your models and why?
+
+- Game
+    user_o, user_x:
+        I added user_o and user_x insted of user, since there are two players 
+        to start this game.
+
+    attempts:
+        The board of the game Tic Tac Toe has 9 squares.
+        I added this property because of the use of counting a user's attempts to populate
+         a square, to count how many left attempts they have before it turn 0 which means 
+         that the board is full. 
+
+    board:
+        I was sttrugled to find how to keep player's move. 
+        this property to keep every move in the tupple.
+        this property is set with pickled-property, so I can refer the value by using index.
+
+    next_move:
+        This to specify who is going to take the next attempt.
+        it is used for a validation for avoiding the board not to get populated 2 turns 
+        in a row by the same player.
+    
+    game_over, tie, cancelled:
+        I add this for checking the status of the game, so I can sort by status.
+      
+    history: 
+        I added this to keep all the move for a game.
+    
+    winner: 
+        I added this property to store the result of the game.
+
+- Score
+    winner: 
+        I added this property to store the result of the game.
+
+    user_o, user_x:
+        I added user_o and user_x insted of user, since there are two players to start this game.
+
