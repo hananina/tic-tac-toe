@@ -9,18 +9,23 @@
 
 ##Game Description:
 Tic tac toe is a simple 2 players game. 
-when you create new game, there are two forms "user_o" and "user_x" to fill you and the other player's name.
+The board has 9 squares. 3*3 matrix form.
 
 given time. Each game can be retrieved or played by using the path parameter
 `urlsafe_game_key`.
 
 ##Rules:
 Each player populate "o" or "x" into the square of 3x3 board alternatively. and the user had 3 squares of "o" or "x" in a row win the game. 
-
 new game always starts with user_o's move.
 and "next_turn" property specify the user who is going to play next move.
-
 When the board get full without a winner, then the game ended in a tie.
+
+
+##How to start playing?
+1. Create a new user, using the ```create_user``` endpoint.
+1. Use ```create_game``` to create a game. There are two forms ```user_o``` and ```user_x``` to fill you and the other player's name. Remember to copy the```urlsafe_key``` property for later use.
+1. use ```make_move``` to implement population of your move. you need ```urlsafe_key``` to let the program know which game are you playing, and fill ```move``` form with a number of square you want to populate. It returns a result as json data.
+
 
 ##Score keeping:
 Score is created when a game end.
