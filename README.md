@@ -24,7 +24,7 @@ When the board get full without a winner, then the game ended in a tie.
 ##How to start playing?
 1. Create a new user, using the ```create_user``` endpoint.
 1. Use ```create_game``` to create a game. There are two forms ```user_o``` and ```user_x``` to fill you and the other player's name. Remember to copy the```urlsafe_key``` property for later use.
-1. use ```make_move``` to implement population of your move. you need ```urlsafe_key``` to let the program know which game are you playing, and fill ```move``` form with a number of square you want to populate. It returns a result as json data.
+1. use ```make_move``` to implement population of your move with numbers between 0-8. you need ```urlsafe_key``` to let the program know which game are you playing, and fill ```move``` form with a number of square you want to populate. It returns a result as json data.
 
 
 ##Score keeping:
