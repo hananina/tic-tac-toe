@@ -9,14 +9,24 @@
 
 ##Game Description:
 Tic tac toe is a simple 2 players game. 
-each player populate "o" or "x" into the square of 3x3 board alternatively.
 when you create new game, there are two forms "user_o" and "user_x" to fill you and the other player's name.
+
+given time. Each game can be retrieved or played by using the path parameter
+`urlsafe_game_key`.
+
+##Rules:
+Each player populate "o" or "x" into the square of 3x3 board alternatively. and the user had 3 squares of "o" or "x" in a row win the game. 
 
 new game always starts with user_o's move.
 and "next_turn" property specify the user who is going to play next move.
 
-given time. Each game can be retrieved or played by using the path parameter
-`urlsafe_game_key`.
+When the board get full without a winner, then the game ended in a tie.
+
+##Score keeping:
+Score is created when a game end.
+You can get information of the result such as winner, the players who played the game, and date.
+if there are no winner. it means the game ended in a tie.
+
 
 ##Files Included:
  - api.py: Contains endpoints and game playing logic.
