@@ -3,20 +3,17 @@
 ## Set-Up Instructions:
 1.  Update the value of application in app.yaml to the app ID you have registered
  in the App Engine admin console and would like to use to host your instance of this sample.
+
 1.  Run the app with the devserver using dev_appserver.py DIR, and ensure it's
- running by visiting the API Explorer - by default localhost:8080/_ah/api/explorer.
-1.  (Optional) Generate your client library(ies) with the endpoints tool.
- Deploy your application.
- 
+ running by visiting the API Explorer - by default ```localhost:8080/_ah/api/explorer```.
 
 ##Game Description:
 Tic tac toe is a simple 2 players game. 
-two players place "o" or "x" on the 3x3 board.
-you are playing with another player!
-when you create new game, there are two forms "user_o" and "user_x".
-new game always starts with user_o's turn.
-and "next_turn" property indicate the user who will play next move. 
+each player populate "o" or "x" into the square of 3x3 board alternatively.
+when you create new game, there are two forms "user_o" and "user_x" to fill you and the other player's name.
 
+new game always starts with user_o's move.
+and "next_turn" property specify the user who is going to play next move.
 
 given time. Each game can be retrieved or played by using the path parameter
 `urlsafe_game_key`.
@@ -28,6 +25,7 @@ given time. Each game can be retrieved or played by using the path parameter
  - main.py: Handler for taskqueue handler.
  - models.py: Entity and message definitions including helper methods.
  - utils.py: Helper function for retrieving ndb.Models by urlsafe Key string.
+ - Design.txt: Design decisions and records.
 
 ##Endpoints Included:
  - **create_user**
@@ -93,7 +91,7 @@ given time. Each game can be retrieved or played by using the path parameter
 
  - **cancel_game**
     - Path: 'game/{urlsafe_game_key}/cancel_game'
-    - Method: GET
+    - Method: PUT
     - Parameters: None
     - Returns: GameForm
     - Description: Cancel a game in progres.
@@ -126,19 +124,27 @@ given time. Each game can be retrieved or played by using the path parameter
  - **GameForm**
     - Representation of a Game's state (urlsafe_key, attempts_remaining,
     game_over flag, message, user_name).
+
  - **GameForms**
     - Multiple GameForm container
+
  - **NewGameForm**
     - Used to create a new game (user_name, min, max, attempts)
+
  - **MakeMoveForm**
     - Inbound make move form.
+
  - **ScoreForm**
     - Representation of a completed game's Score (user_name, date, won flag).
+
  - **ScoreForms**
     - Multiple ScoreForm container.
+
  - **StringMessage**
     - General purpose String container.
+
  - **UserForm**
      - inbound user's information.
+
  - **UserForms**
      - Multiple UserForm container
