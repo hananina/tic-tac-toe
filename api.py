@@ -144,9 +144,9 @@ class TicTacToeApi(remote.Service):
 
         game.attempts -= 1
 
-        # if check_winner == True:
-        game.end_game(True, user)
-        return game.to_form('You win!')
+        if check_winner == True:
+            game.end_game(True, user)
+            return game.to_form('You win!')
 
         if game.attempts < 1:
             game.end_game(False, user)
