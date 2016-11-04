@@ -113,14 +113,14 @@ class TicTacToeApi(remote.Service):
             raise endpoints.NotFoundException('Game not found!')
 
         if game.game_over:
-            raise endpoints.NotFoundException('Game already over!')
+            raise endpoints.BadRequestException('Game already over!')
 
         if user.key != game.next_move:
-            raise endpoints.NotFoundException('It\'s not your turn!')
+            raise endpoints.BadRequestException('It\'s not your turn!')
 
         # check if the square of the bord is available?
         if game.board[move] != '':
-            raise endpoints.NotFoundException('This square is already taken, choose other move!')
+            raise endpoints.BadRequestException('This square is already taken, choose other move!')
 
         game.board[move] = 'o' if o else "x"
         game.history.append((move, "o" if o else"x"))
@@ -216,7 +216,7 @@ class TicTacToeApi(remote.Service):
         """Cancel a game in progres"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game.game_over:
-            raise endpoints.NotFoundException('Game already over!')
+            raise endpoints.BadRequestException('Game already over!')
         else:
             game.history.append(("over!", "cancelled!"))
             game.cancel_game()
