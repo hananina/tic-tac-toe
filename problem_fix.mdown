@@ -1,0 +1,27 @@
+#problem_fix
+
+=======
+##この部分はどうなっているのか？
+
+    def end_game(self, won=False, history=False):
+    """Ends the game - if won is True, the player won. - if won is False,
+            the player lost."""
+
+=====
+
+##when you use PickleProperty?
+PickleProperty は　repeted = true 
+
+======
+
+
+##Over quota error
+
+What is happening?:
+APE places quota limits on the amount of each system resourse. 
+and my app somehow met the limit of recipient Emailed.
+
+How I solve it?:
+
+
+======
